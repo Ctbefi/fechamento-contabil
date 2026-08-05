@@ -173,7 +173,7 @@ function processWorkbook(wb,fileName){
         demanda:String(dem).trim(),descricao:String(r[1]||'').trim(),
         responsavel:String(r[4]||'').trim(),
         dataPrazoFch:dpf,dataEntregaFch:def,situacaoFch:sf,
-        observacoes:obs,editing:false});
+        observacoes:obs});
     }
   });
   document.getElementById('mesBadge').textContent=mesRef?'Fechamento '+mesRef:fileName.replace('.xlsx','');
@@ -338,19 +338,11 @@ function renderOp(){
   });
   var trs=rows.map(function(r){
     var entCell=r.dataEntregaFch||'-';
-    var obsCell=r.editing?'<input class="inp-obs" type="text" id="inp-obs-'+r.id+'" value="'+escHtml(r.observacoes)+'" placeholder="Observacoes">':'<span class="obs-cell">'+(r.observacoes?escHtml(r.observacoes):'')+'</span>';
-    var actCell=r.editing?'<button class="save-btn" onclick="saveR(\''+r.id+'\')">Salvar</button>':'<button class="edit-btn" onclick="editR(\''+r.id+'\')">Ed</button>';
-    return '<tr><td><span class="emp-tag">'+r.empresa+'</span></td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.demanda+'</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8b92b8">'+r.descricao+'</td><td>'+r.responsavel+'</td><td>'+r.dataPrazoFch+'</td><td>'+entCell+'</td><td>'+badge(r.situacaoFch)+'</td><td>'+obsCell+'</td><td>'+actCell+'</td></tr>';
+    var obsCell='<span class="obs-cell">'+(r.observacoes?escHtml(r.observacoes):'')+'</span>';
+    return '<tr><td><span class="emp-tag">'+r.empresa+'</span></td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.demanda+'</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8b92b8">'+r.descricao+'</td><td>'+r.responsavel+'</td><td>'+r.dataPrazoFch+'</td><td>'+entCell+'</td><td>'+badge(r.situacaoFch)+'</td><td>'+obsCell+'</td></tr>';
   }).join('');
-  document.getElementById('opTable').innerHTML='<thead><tr><th>Emp.</th><th>Demanda</th><th>Descricao</th><th>Responsavel</th><th>Prazo FCH</th><th>Data entrega</th><th>Status</th><th>Observações</th><th></th></tr></thead><tbody>'+trs+'</tbody>';
+  document.getElementById('opTable').innerHTML='<thead><tr><th>Emp.</th><th>Demanda</th><th>Descricao</th><th>Responsavel</th><th>Prazo FCH</th><th>Data entrega</th><th>Status</th><th>Observações</th></tr></thead><tbody>'+trs+'</tbody>';
   document.getElementById('opCount').textContent=rows.length+' demanda'+(rows.length!==1?'s':'')+' exibida'+(rows.length!==1?'s':'');
-}
-function editR(id){var r=data.find(function(d){return d.id===id;});if(r){r.editing=true;renderOp();}}
-function saveR(id){
-  var r=data.find(function(d){return d.id===id;});if(!r)return;
-  var obsInp=document.getElementById('inp-obs-'+r.id);
-  if(obsInp)r.observacoes=obsInp.value.trim();
-  r.editing=false;renderAll();
 }
 
 function switchTab(tab,el){
