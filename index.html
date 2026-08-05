@@ -64,7 +64,6 @@
   <div class="tabs">
     <div class="tab active" onclick="switchTab('dash',this)">Dashboard</div>
     <div class="tab" onclick="switchTab('op',this)">Operacional</div>
-    <div class="tab" onclick="switchTab('alertas',this)">Alertas <span class="alert-count" id="alertBadge">0</span></div>
   </div>
   <div class="content" id="dashView">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
@@ -103,12 +102,6 @@
     </div>
     <table class="tbl" id="opTable"></table>
     <div id="opCount" style="margin-top:8px;font-size:11px;color:#8b92b8"></div>
-  </div>
-  <div class="content" id="alertasView" style="display:none">
-    <div class="card">
-      <div class="card-title">Demandas pendentes com prazo vencido</div>
-      <div id="alertasList"></div>
-    </div>
   </div>
 </div>
 

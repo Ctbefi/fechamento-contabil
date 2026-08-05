@@ -190,7 +190,7 @@ function badge(s){
 
 function dashData(){return dashEmp==='Todas'?data:data.filter(function(d){return d.empresa===dashEmp;});}
 
-function renderAll(){renderDashEmpFilter();kpis();empresaBars();critTable();renderEmpresaFilter();renderStatusFilter();renderOp();renderAlertas();setTimeout(function(){statusChart();perfCard();},80);}
+function renderAll(){renderDashEmpFilter();kpis();empresaBars();critTable();renderEmpresaFilter();renderStatusFilter();renderOp();setTimeout(function(){statusChart();perfCard();},80);}
 
 function renderDashEmpFilter(){
   document.getElementById('dashEmpFilter').innerHTML=['Todas'].concat(EMPRESAS).map(function(e){
@@ -304,13 +304,13 @@ function critTable(){
     return da-db;
   });
   if(!crit.length){
-    document.getElementById('critTable').innerHTML='<tbody><tr><td colspan="7" style="text-align:center;padding:20px;color:#8b92b8">Nenhuma demanda pendente com prazo vencido</td></tr></tbody>';
+    document.getElementById('critTable').innerHTML='<tbody><tr><td colspan="8" style="text-align:center;padding:20px;color:#8b92b8">Nenhuma demanda pendente com prazo vencido</td></tr></tbody>';
     return;
   }
   var rows=crit.map(function(r){
-    return '<tr><td><span class="emp-tag">'+r.empresa+'</span></td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.demanda+'</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8b92b8">'+r.descricao+'</td><td>'+r.responsavel+'</td><td>'+r.dataPrazoFch+'</td><td>'+(r.dataEntregaFch||'-')+'</td><td>'+badge(r.situacaoFch)+'</td></tr>';
+    return '<tr><td><span class="emp-tag">'+r.empresa+'</span></td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.demanda+'</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8b92b8">'+r.descricao+'</td><td>'+r.responsavel+'</td><td>'+r.dataPrazoFch+'</td><td>'+(r.dataEntregaFch||'-')+'</td><td>'+badge(r.situacaoFch)+'</td><td><span class="obs-cell">'+(r.observacoes?escHtml(r.observacoes):'')+'</span></td></tr>';
   }).join('');
-  document.getElementById('critTable').innerHTML='<thead><tr><th>Empresa</th><th>Demanda</th><th>Descricao</th><th>Responsavel</th><th>Prazo FCH</th><th>Entrega</th><th>Status</th></tr></thead><tbody>'+rows+'</tbody>';
+  document.getElementById('critTable').innerHTML='<thead><tr><th>Empresa</th><th>Demanda</th><th>Descricao</th><th>Responsavel</th><th>Prazo FCH</th><th>Entrega</th><th>Status</th><th>Observações</th></tr></thead><tbody>'+rows+'</tbody>';
 }
 
 function renderEmpresaFilter(){
@@ -337,7 +337,7 @@ function renderOp(){
     return(fEmp==='Todas'||d.empresa===fEmp)&&(fSt==='Todos'||d.situacaoFch===fSt)&&(!q||d.demanda.toLowerCase().indexOf(q)>=0||d.responsavel.toLowerCase().indexOf(q)>=0);
   });
   var trs=rows.map(function(r){
-    var entCell=r.editing?'<input class="inp-date" type="text" id="inp-'+r.id+'" value="'+r.dataEntregaFch+'" placeholder="DD/MM/AAAA">':(r.dataEntregaFch||'-');
+    var entCell=r.dataEntregaFch||'-';
     var obsCell=r.editing?'<input class="inp-obs" type="text" id="inp-obs-'+r.id+'" value="'+escHtml(r.observacoes)+'" placeholder="Observacoes">':'<span class="obs-cell">'+(r.observacoes?escHtml(r.observacoes):'')+'</span>';
     var actCell=r.editing?'<button class="save-btn" onclick="saveR(\''+r.id+'\')">Salvar</button>':'<button class="edit-btn" onclick="editR(\''+r.id+'\')">Ed</button>';
     return '<tr><td><span class="emp-tag">'+r.empresa+'</span></td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.demanda+'</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#8b92b8">'+r.descricao+'</td><td>'+r.responsavel+'</td><td>'+r.dataPrazoFch+'</td><td>'+entCell+'</td><td>'+badge(r.situacaoFch)+'</td><td>'+obsCell+'</td><td>'+actCell+'</td></tr>';
@@ -348,27 +348,14 @@ function renderOp(){
 function editR(id){var r=data.find(function(d){return d.id===id;});if(r){r.editing=true;renderOp();}}
 function saveR(id){
   var r=data.find(function(d){return d.id===id;});if(!r)return;
-  var v=document.getElementById('inp-'+r.id).value.trim();
   var obsInp=document.getElementById('inp-obs-'+r.id);
-  r.dataEntregaFch=v;
-  r.situacaoFch=v==='Previo'?'Fechamento previo':v==='N/A'?'N/A':calcStatus(v,r.dataPrazoFch);
   if(obsInp)r.observacoes=obsInp.value.trim();
   r.editing=false;renderAll();
-}
-
-function renderAlertas(){
-  var urg=data.filter(function(d){return d.situacaoFch==='Em atraso';});
-  document.getElementById('alertBadge').textContent=urg.length;
-  var el=document.getElementById('alertasList');
-  if(!urg.length){el.innerHTML='<p style="color:#8b92b8;padding:12px 0;font-size:12px">Nenhuma demanda pendente com prazo vencido.</p>';return;}
-  el.innerHTML=urg.slice(0,20).map(function(r){
-    return '<div class="alert-row"><div class="alert-icon" style="background:#3a2e0a;color:#fbbf24">!</div><div><div class="alert-title">'+r.empresa+' - '+r.demanda+'</div><div class="alert-sub">'+(r.descricao?r.descricao+' - ':'')+r.responsavel+' - Prazo: '+r.dataPrazoFch+' - '+badge(r.situacaoFch)+'</div></div></div>';
-  }).join('');
 }
 
 function switchTab(tab,el){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
   el.classList.add('active');
-  ['dashView','opView','alertasView'].forEach(function(id){document.getElementById(id).style.display='none';});
-  document.getElementById(tab==='dash'?'dashView':tab==='op'?'opView':'alertasView').style.display='block';
+  ['dashView','opView'].forEach(function(id){document.getElementById(id).style.display='none';});
+  document.getElementById(tab==='dash'?'dashView':'opView').style.display='block';
 }
