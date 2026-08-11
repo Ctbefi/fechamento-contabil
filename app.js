@@ -11,7 +11,14 @@ var SC = {
   'Fechamento previo':{bg:'#1a2e0a',fg:'#86efac',bd:'#375623'},
   'N/A':              {bg:'#1e1e2e',fg:'#8b92b8',bd:'#595959'}
 };
-var data=[], mesRef='', dashEmp='Todas', fEmp='Todas', fSt='Todos';
+var ALL_STATUSES=['No Prazo','Em atraso','Atrasado','A iniciar','Fechamento previo','N/A'];
+var data=[], mesRef='', dashEmp=EMPRESAS.slice(), fEmp=EMPRESAS.slice(), fSt=ALL_STATUSES.slice();
+
+function toggleInArray(arr,val){
+  var idx=arr.indexOf(val);
+  if(idx>=0)arr.splice(idx,1);else arr.push(val);
+  return arr;
+}
 
 async function sha256(msg){
   var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
@@ -179,6 +186,7 @@ function processWorkbook(wb,fileName){
   document.getElementById('mesBadge').textContent=mesRef?'Fechamento '+mesRef:fileName.replace('.xlsx','');
   document.getElementById('loadScreen').style.display='none';
   document.getElementById('app').style.display='block';
+  dashEmp=EMPRESAS.slice();fEmp=EMPRESAS.slice();fSt=ALL_STATUSES.slice();
   renderAll();
 }
 
@@ -188,16 +196,21 @@ function badge(s){
   return '<span class="badge" style="background:'+c.bg+';color:'+c.fg+'">'+s+'</span>';
 }
 
-function dashData(){return dashEmp==='Todas'?data:data.filter(function(d){return d.empresa===dashEmp;});}
+function dashData(){return data.filter(function(d){return dashEmp.indexOf(d.empresa)>=0;});}
 
 function renderAll(){renderDashEmpFilter();kpis();empresaBars();critTable();renderEmpresaFilter();renderStatusFilter();renderOp();setTimeout(function(){statusChart();perfCard();},80);}
 
 function renderDashEmpFilter(){
-  document.getElementById('dashEmpFilter').innerHTML=['Todas'].concat(EMPRESAS).map(function(e){
-    return '<button class="ef-btn'+(dashEmp===e?' active':'')+'" onclick="setDE(\''+e+'\')">'+e+'</button>';
+  var todasBtn='<button class="ef-btn'+(dashEmp.length===EMPRESAS.length?' active':'')+'" onclick="setDE(\'Todas\')">Todas</button>';
+  var emps=EMPRESAS.map(function(e){
+    return '<button class="ef-btn'+(dashEmp.indexOf(e)>=0?' active':'')+'" onclick="setDE(\''+e+'\')">'+e+'</button>';
   }).join('');
+  document.getElementById('dashEmpFilter').innerHTML=todasBtn+emps;
 }
-function setDE(e){dashEmp=e;renderDashEmpFilter();kpis();empresaBars();critTable();setTimeout(function(){statusChart();perfCard();},80);}
+function setDE(e){
+  if(e==='Todas'){dashEmp=EMPRESAS.slice();}else{toggleInArray(dashEmp,e);}
+  renderDashEmpFilter();kpis();empresaBars();critTable();setTimeout(function(){statusChart();perfCard();},80);
+}
 
 function kpis(){
   var dd=dashData();
@@ -210,7 +223,7 @@ function kpis(){
   var na=dd.filter(function(d){return d.situacaoFch==='N/A';}).length;
   var pct=tot?Math.round(prazo/tot*100):0;
   var cards=[
-    {l:'Total de demandas',v:tot,  s:dashEmp==='Todas'?'5 empresas':dashEmp,c:'#3d7dd4',vc:'#7fb3f5'},
+    {l:'Total de demandas',v:tot,  s:dashEmp.length===EMPRESAS.length?'5 empresas':(dashEmp.length?dashEmp.join(', '):'Nenhuma empresa'),c:'#3d7dd4',vc:'#7fb3f5'},
     {l:'Concluido no prazo',v:prazo,s:pct+'% do total',c:'#276221',vc:'#4ade80'},
     {l:'A iniciar',v:ainit,s:'Prazo nao venceu',c:'#2E75B6',vc:'#60a5fa'},
     {l:'Em atraso',v:emA,s:'Prazo vencido s/ entrega',c:'#9C6500',vc:'#fbbf24'},
@@ -224,7 +237,7 @@ function kpis(){
 }
 
 function empresaBars(){
-  var emps=dashEmp==='Todas'?EMPRESAS:[dashEmp];
+  var emps=EMPRESAS.filter(function(e){return dashEmp.indexOf(e)>=0;});
   document.getElementById('empresaBars').innerHTML=emps.map(function(emp){
     var rows=data.filter(function(d){return d.empresa===emp;});
     if(!rows.length)return'';
@@ -314,27 +327,39 @@ function critTable(){
 }
 
 function renderEmpresaFilter(){
-  document.getElementById('empresaFilter').innerHTML=['Todas'].concat(EMPRESAS).map(function(e){
-    return '<button class="ef-btn'+(fEmp===e?' active':'')+'" onclick="setE(\''+e+'\')">'+e+'</button>';
+  var todasBtn='<button class="ef-btn'+(fEmp.length===EMPRESAS.length?' active':'')+'" onclick="setE(\'Todas\')">Todas</button>';
+  var emps=EMPRESAS.map(function(e){
+    return '<button class="ef-btn'+(fEmp.indexOf(e)>=0?' active':'')+'" onclick="setE(\''+e+'\')">'+e+'</button>';
   }).join('');
+  document.getElementById('empresaFilter').innerHTML=todasBtn+emps;
 }
-function setE(e){fEmp=e;renderEmpresaFilter();renderOp();}
+function setE(e){
+  if(e==='Todas'){fEmp=EMPRESAS.slice();}else{toggleInArray(fEmp,e);}
+  renderEmpresaFilter();renderOp();
+}
 
 function renderStatusFilter(){
-  var ss=['Todos','No Prazo','Em atraso','Atrasado','A iniciar','Fechamento previo','N/A'];
-  document.getElementById('statusFilter').innerHTML=ss.map(function(s){
+  var todosAtivo=fSt.length===ALL_STATUSES.length;
+  var cTodos=SC['Todos']||{bg:'#242740',fg:'#8b92b8',bd:'#8b92b8'};
+  var stTodos=todosAtivo?'background:'+cTodos.bg+';color:'+cTodos.fg+';border-color:'+(cTodos.bd||cTodos.fg)+';font-weight:700':'';
+  var todosBtn='<button class="sf-btn" style="'+stTodos+'" onclick="setSt(\'Todos\')">Todos</button>';
+  var chips=ALL_STATUSES.map(function(s){
     var c=SC[s]||{bg:'#242740',fg:'#8b92b8',bd:'#8b92b8'};
-    var a=fSt===s;
+    var a=fSt.indexOf(s)>=0;
     var st=a?'background:'+c.bg+';color:'+c.fg+';border-color:'+(c.bd||c.fg)+';font-weight:700':'';
     return '<button class="sf-btn" style="'+st+'" onclick="setSt(\''+s+'\')">'+s+'</button>';
   }).join('');
+  document.getElementById('statusFilter').innerHTML=todosBtn+chips;
 }
-function setSt(s){fSt=s;renderStatusFilter();renderOp();}
+function setSt(s){
+  if(s==='Todos'){fSt=ALL_STATUSES.slice();}else{toggleInArray(fSt,s);}
+  renderStatusFilter();renderOp();
+}
 
 function renderOp(){
   var q=(document.getElementById('searchOp')||{value:''}).value.toLowerCase();
   var rows=data.filter(function(d){
-    return(fEmp==='Todas'||d.empresa===fEmp)&&(fSt==='Todos'||d.situacaoFch===fSt)&&(!q||d.demanda.toLowerCase().indexOf(q)>=0||d.responsavel.toLowerCase().indexOf(q)>=0);
+    return(fEmp.indexOf(d.empresa)>=0)&&(fSt.indexOf(d.situacaoFch)>=0)&&(!q||d.demanda.toLowerCase().indexOf(q)>=0||d.responsavel.toLowerCase().indexOf(q)>=0);
   });
   var trs=rows.map(function(r){
     var entCell=r.dataEntregaFch||'-';
