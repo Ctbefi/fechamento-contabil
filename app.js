@@ -235,7 +235,6 @@ function kpis(){
   var emA=dd.filter(function(d){return d.situacaoFch==='Em atraso';}).length;
   var ainit=dd.filter(function(d){return d.situacaoFch==='A iniciar';}).length;
   var prev=dd.filter(function(d){return d.situacaoFch==='Fechamento previo';}).length;
-  var na=dd.filter(function(d){return d.situacaoFch==='N/A';}).length;
   var pct=tot?Math.round(prazo/tot*100):0;
   var cards=[
     {l:'Total de demandas',v:tot,  s:dashEmp.length===EMPRESAS.length?'5 empresas':(dashEmp.length?dashEmp.join(', '):'Nenhuma empresa'),c:'#3d7dd4',vc:'#7fb3f5'},
@@ -243,8 +242,7 @@ function kpis(){
     {l:'A iniciar',v:ainit,s:'Prazo nao venceu',c:'#2E75B6',vc:'#60a5fa'},
     {l:'Em atraso',v:emA,s:'Prazo vencido s/ entrega',c:'#9C6500',vc:'#fbbf24'},
     {l:'Concl. c/ atraso',v:atras,s:'Entregue apos prazo',c:'#9C0006',vc:'#f87171'},
-    {l:'Fechamento previo',v:prev,s:'Acao paliativa',c:'#375623',vc:'#86efac'},
-    {l:'N/A',v:na,s:'Nao se aplica',c:'#595959',vc:'#8b92b8'}
+    {l:'Fechamento previo',v:prev,s:'Acao paliativa',c:'#375623',vc:'#86efac'}
   ];
   document.getElementById('kpiGrid').innerHTML=cards.map(function(k){
     return '<div class="kpi" style="border-left-color:'+k.c+'"><div class="kpi-label">'+k.l+'</div><div class="kpi-val" style="color:'+k.vc+'">'+k.v+'</div><div class="kpi-sub">'+k.s+'</div></div>';
@@ -268,18 +266,18 @@ var chartInst=null;
 function statusChart(){
   var ctx=document.getElementById('statusChart').getContext('2d');
   var dd=dashData();
-  var labels=['No Prazo','Em atraso','Atrasado','A iniciar','Fch. previo','N/A'];
-  var keys=['No Prazo','Em atraso','Atrasado','A iniciar','Fechamento previo','N/A'];
+  var labels=['No Prazo','Em atraso','Atrasado','A iniciar','Fch. previo'];
+  var keys=['No Prazo','Em atraso','Atrasado','A iniciar','Fechamento previo'];
   var vals=keys.map(function(s){return dd.filter(function(d){return d.situacaoFch===s;}).length;});
-  var bgs=['#276221','#9C6500','#9C0006','#2E75B6','#375623','#595959'];
+  var bgs=['#276221','#9C6500','#9C0006','#2E75B6','#375623'];
   if(chartInst)chartInst.destroy();
   chartInst=new Chart(ctx,{type:'bar',
     data:{labels:labels,datasets:[{data:vals,backgroundColor:bgs,borderRadius:4,borderSkipped:false}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false}},
       scales:{
-        x:{ticks:{color:'#8b92b8',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},
-        y:{ticks:{color:'#8b92b8',font:{size:10}},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}
+        x:{ticks:{color:'#8b92b8',font:{size:20}},grid:{color:'rgba(255,255,255,.04)'}},
+        y:{ticks:{color:'#8b92b8',font:{size:20}},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}
       }}
   });
 }
@@ -313,7 +311,7 @@ function perfCard(){
       datasets:[{data:[noPrazo,atrasado,andamento],backgroundColor:['#276221','#9C0006','#3d7dd4'],borderColor:'#1a1d2e',borderWidth:2}]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{
-        legend:{position:'bottom',labels:{color:'#8b92b8',font:{size:9},boxWidth:8,padding:8}},
+        legend:{position:'bottom',labels:{color:'#8b92b8',font:{size:18},boxWidth:14,padding:8}},
         tooltip:{callbacks:{label:function(c){
           var v=c.parsed,pc=tot?Math.round(v/tot*100):0;
           return c.label+': '+v+' ('+pc+'%)';
@@ -391,8 +389,8 @@ function impactoCard(){
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:false}},
       scales:{
-        x:{ticks:{color:'#8b92b8',font:{size:9}},grid:{color:'rgba(255,255,255,.04)'}},
-        y:{ticks:{color:'#8b92b8',font:{size:9}},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}
+        x:{ticks:{color:'#8b92b8',font:{size:18}},grid:{color:'rgba(255,255,255,.04)'}},
+        y:{ticks:{color:'#8b92b8',font:{size:18}},grid:{color:'rgba(255,255,255,.06)'},beginAtZero:true}
       }}
   });
 }
