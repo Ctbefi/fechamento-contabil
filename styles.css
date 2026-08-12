@@ -46,6 +46,8 @@ body{font-family:Calibri,Arial,sans-serif;background:var(--bg);color:var(--text)
 .kpi-val{font-size:26px;font-weight:700;line-height:1}
 .kpi-sub{font-size:9px;color:var(--muted);margin-top:4px}
 .section-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.section-row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.perf-flex{display:flex;align-items:center;gap:14px}
 .perf-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:11px;border-bottom:1px solid var(--border)}
 .perf-row:last-child{border-bottom:none}
 .perf-label{color:var(--muted)}
